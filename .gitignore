@@ -177,6 +177,8 @@ pyrightconfig.json
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 
+.vscode
 .vscode/settings.json
 mynotebook.txt
 mynotebook.md
+database.db
