@@ -11,8 +11,6 @@ from fast_zero.schemas import Message, UserList, UserPublic, UserSchema
 
 app = FastAPI()
 
-database = []
-
 
 @app.get('/', response_model=Message, status_code=HTTPStatus.OK)
 def read_root():
