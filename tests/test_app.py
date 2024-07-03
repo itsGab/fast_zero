@@ -8,16 +8,16 @@ from fast_zero.schemas import UserPublic
 # from fast_zero.app import app
 
 
-def test_read_root_deve_retornar_ok_e_ola_mundo(client):
+def test_read_root_should_return_hello_world(client):
     # client = TestClient(app)  # arrange -> substituido por fixture
 
     response = client.get('/')  # act
 
     assert response.status_code == HTTPStatus.OK  # assert
-    assert response.json() == {'message': 'Olá Mundo!'}
+    assert response.json() == {'message': 'Hello World!'}
 
 
-def test_read_html_deve_retorno_ok_e_html_ola_mundo(client):
+def test_read_root_should_return_html_hello_world(client):
     response = client.get('/html/')
 
     assert response.status_code == HTTPStatus.OK
@@ -26,10 +26,10 @@ def test_read_html_deve_retorno_ok_e_html_ola_mundo(client):
         == """
     <html>
       <head>
-        <title>Nosso ola mundo!</title>
+        <title> Our Hello World! </title>
       </head>
       <body>
-        <h1> Ola Mundo </h1>
+        <h1> Hello World! </h1>
       </body>
     </html>"""
     )
@@ -39,17 +39,17 @@ def test_create_user(client):
     response = client.post(
         '/users/',
         json={
-            'username': 'username',
-            'email': 'username@email.com',
-            'password': 'password123',
+            'username': 'user',
+            'email': 'user@email.com',
+            'password': 'secret',
         },
     )
 
     assert response.status_code == HTTPStatus.CREATED
     assert response.json() == {
         'id': 1,
-        'username': 'username',
-        'email': 'username@email.com',
+        'username': 'user',
+        'email': 'user@email.com',
     }
 
 
@@ -57,9 +57,9 @@ def test_create_user_exception_username(client, user):
     response = client.post(
         '/users/',
         json={
-            'username': 'Teste',
-            'email': 'username@email.com',
-            'password': 'password123',
+            'username': user.username,
+            'email': 'user@email.com',
+            'password': 'secret',
         },
     )
 
@@ -71,9 +71,9 @@ def test_create_user_exception_email(client, user):
     response = client.post(
         '/users/',
         json={
-            'username': 'username',
-            'email': 'teste@mail.com',
-            'password': 'password123',
+            'username': 'new_user',
+            'email': user.email,
+            'password': 'secret',
         },
     )
 
@@ -109,9 +109,10 @@ def test_read_user_exception(client):
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_update_user(client, user):
+def test_update_user(client, user, token):
     response = client.put(
-        '/users/1',
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'updated',
             'email': 'updated@email.com',
@@ -122,43 +123,48 @@ def test_update_user(client, user):
     assert response.json() == {
         'username': 'updated',
         'email': 'updated@email.com',
-        'id': 1,
+        'id': user.id,
     }
 
 
-def test_update_user_exception(client):
+def test_update_user_exception_with_diff_id(client, token):
     response = client.put(
         '/users/2',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'updated_username',
             'email': 'updated@email.com',
             'password': 'thisissecret',
         },
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {'detail': 'Not enough permissions'}
 
-    response = client.put(
-        '/users/0',
-        json={
-            'username': 'updated_username',
-            'email': 'updated@email.com',
-            'password': 'thisissecret',
-        },
+
+def test_delete_user(client, user, token):
+    response = client.delete(
+        f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
-
-
-def test_delete_user(client, user):
-    response = client.delete('/users/1')
-
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_exception(client):
-    response = client.delete('/users/0')
+def test_delete_user_exception_with_diff_id(client, token):
+    response = client.delete(
+        '/users/2', headers={'Authorization': f'Bearer {token}'}
+    )
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {'detail': 'Not enough permissions'}
+
+
+def test_get_token(client, user):
+    response = client.post(
+        '/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in token
+    assert 'token_type' in token
