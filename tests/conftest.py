@@ -39,16 +39,17 @@ def session():
 
 @pytest.fixture()
 def user(session):
+    secret = 'secret'
     user = User(
-        username='Teste',
-        email='teste@mail.com',
-        password=get_password_hash('mytest'),
+        username='test',
+        email='test@test.com',
+        password=get_password_hash(secret),
     )
     session.add(user)
     session.commit()
     session.refresh(user)
 
-    user.clean_password = 'mytest'  # type: ignore
+    user.clean_password = secret  # type: ignore
 
     return user
 
