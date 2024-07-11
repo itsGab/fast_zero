@@ -11,8 +11,8 @@ from fast_zero.schemas import Message, UserList, UserPublic, UserSchema
 from fast_zero.security import get_current_user, get_password_hash
 
 # Annotateds
-CurrentSession = Annotated[Session, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+T_Session = Annotated[Session, Depends(get_session)]
+T_CurrentUser = Annotated[User, Depends(get_current_user)]
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -22,7 +22,7 @@ router = APIRouter(prefix='/users', tags=['users'])
     response_model=UserPublic,
     status_code=HTTPStatus.CREATED,
 )
-def create_user(user: UserSchema, session: CurrentSession):
+def create_user(user: UserSchema, session: T_Session):
     # define db_user se o username ou o email ja existir
     db_user = session.scalar(
         select(User).where(
@@ -59,13 +59,13 @@ def create_user(user: UserSchema, session: CurrentSession):
 
 
 @router.get('/', response_model=UserList, status_code=HTTPStatus.OK)
-def read_users(session: CurrentSession, skip: int = 0, limit: int = 100):
+def read_users(session: T_Session, skip: int = 0, limit: int = 100):
     users = session.scalars(select(User).offset(skip).limit(limit)).all()
     return {'users': users}
 
 
 @router.get('/{user_id}', response_model=UserPublic, status_code=HTTPStatus.OK)
-def read_user(user_id: int, session: CurrentSession):
+def read_user(user_id: int, session: T_Session):
     """
     get a specific user
     """
@@ -82,12 +82,12 @@ def read_user(user_id: int, session: CurrentSession):
 def update_user(
     user_id: int,
     user: UserSchema,
-    session: CurrentSession,
-    current_user: CurrentUser,
+    session: T_Session,
+    current_user: T_CurrentUser,
 ):
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permissions'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
     current_user.username = user.username
@@ -102,12 +102,12 @@ def update_user(
 @router.delete('/{user_id}', status_code=HTTPStatus.OK, response_model=Message)
 def delete_user(
     user_id: int,
-    session: CurrentSession,
-    current_user: CurrentUser,
+    session: T_Session,
+    current_user: T_CurrentUser,
 ):
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Not enough permissions'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
     session.delete(current_user)

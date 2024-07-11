@@ -1,12 +1,12 @@
 from http import HTTPStatus
 
-# `TestCliente` e `app` trocado por `client` no conftest.py
+# `TestClient` and `app` replace by `client` stored in conftest.py
 # from fastapi.testclient import TestClient
 # from fast_zero.app import app
 
 
 def test_read_root_should_return_hello_world(client):
-    # client = TestClient(app)  # arrange -> substituido por fixture
+    # client = TestClient(app)  # arrange -> replace by fixture
 
     response = client.get('/')  # act
 

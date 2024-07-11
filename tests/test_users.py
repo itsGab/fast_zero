@@ -105,7 +105,7 @@ def test_update_user_exception_with_diff_id(client, token):
             'password': 'thisissecret',
         },
     )
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {'detail': 'Not enough permissions'}
 
 
@@ -122,5 +122,5 @@ def test_delete_user_exception_with_diff_id(client, token):
         '/users/2', headers={'Authorization': f'Bearer {token}'}
     )
 
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {'detail': 'Not enough permissions'}

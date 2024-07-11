@@ -12,14 +12,14 @@ from fast_zero.schemas import Token
 from fast_zero.security import create_access_token, verify_password
 
 # Annotateds
-OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
-CurrentSession = Annotated[Session, Depends(get_session)]
+T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
+T_Session = Annotated[Session, Depends(get_session)]
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
 
 @router.post('/token', response_model=Token)
-def login_for_access_token(form_data: OAuth2Form, session: CurrentSession):
+def login_for_access_token(form_data: T_OAuth2Form, session: T_Session):
     user = session.scalar(select(User).where(User.email == form_data.username))
 
     if not user:
@@ -36,4 +36,4 @@ def login_for_access_token(form_data: OAuth2Form, session: CurrentSession):
 
     access_token = create_access_token(data={'sub': user.email})
 
-    return {'access_token': access_token, 'token_type': 'bearer'}
+    return {'access_token': access_token, 'token_type': 'Bearer'}
