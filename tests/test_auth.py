@@ -13,7 +13,7 @@ def test_get_token(client, user):
     assert token['token_type'] == 'Bearer'
 
 
-def test_get_incorrect_email(client, user):
+def test_get_token_exception_incorrect_email(client, user):
     response = client.post(
         'auth/token',
         data={'username': 'incorrect-email', 'password': user.clean_password},
@@ -24,7 +24,7 @@ def test_get_incorrect_email(client, user):
     assert token == {'detail': 'Incorrect email or password'}
 
 
-def test_get_incorrect_password(client, user):
+def test_get_token_exception_incorrect_password(client, user):
     response = client.post(
         'auth/token',
         data={'username': user.email, 'password': 'incorrect-password'},
