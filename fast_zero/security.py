@@ -3,7 +3,8 @@ from http import HTTPStatus
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from jwt import PyJWTError, decode, encode
+from jwt import decode, encode
+from jwt.exceptions import DecodeError, ExpiredSignatureError, PyJWTError
 from pwdlib import PasswordHash
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -17,6 +18,7 @@ from fast_zero.settings import Settings
 settings = Settings()  # type: ignore
 
 pwd_context = PasswordHash.recommended()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 
 
 def create_access_token(data: dict):
@@ -39,9 +41,6 @@ def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
-
-
 # removed async from func `async def get_current_user(`
 def get_current_user(
     session: Session = Depends(get_session),
@@ -61,7 +60,14 @@ def get_current_user(
         if not username:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except PyJWTError:
+
+    except ExpiredSignatureError:
+        raise credentials_exception
+
+    except DecodeError:
+        raise credentials_exception
+
+    except PyJWTError:  # pragma: no cover
         raise credentials_exception
 
     user = session.scalar(

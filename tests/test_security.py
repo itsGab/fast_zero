@@ -26,7 +26,7 @@ def test_jwt_invalid_token(client):
     assert response.json() == {'detail': 'Could not validate credentials'}
 
 
-def test_get_current_user_exception_pyjwterror(session):
+def test_get_current_user_exception_decode_error(session):
     # test case for JWT token error (or decode error)
     with pytest.raises(HTTPException):
         get_current_user(session, token='invalid-token')
@@ -41,7 +41,7 @@ def test_get_current_user_exception_user_is_none(session):
         get_current_user(session, token)
 
 
-def test_get_current_user_exception_not_username(session):
+def test_get_current_user_exception_no_username(session):
     # test case for missing 'sub' in the payload
     data_user_none = {'test': 'test'}
     token = create_access_token(data_user_none)

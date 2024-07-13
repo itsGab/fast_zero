@@ -95,14 +95,14 @@ def test_update_user(client, user, token):
     }
 
 
-def test_update_user_exception_with_diff_id(client, token):
+def test_update_user_exception_wrong_user(client, token, other_user):
     response = client.put(
-        '/users/2',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'updated_username',
+            'username': 'updated',
             'email': 'updated@email.com',
-            'password': 'thisissecret',
+            'password': 'newsecret',
         },
     )
     assert response.status_code == HTTPStatus.FORBIDDEN
@@ -117,9 +117,9 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_exception_with_diff_id(client, token):
+def test_delete_user_exception_wrong_user(client, token, other_user):
     response = client.delete(
-        '/users/2', headers={'Authorization': f'Bearer {token}'}
+        f'/users/{other_user.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
