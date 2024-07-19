@@ -16,7 +16,11 @@ def test_create_todo(client, token):
         },
     )
 
-    assert response.json() == {
+    # TODO FIX: test checking times
+    resp_json = response.json()
+    resp_json.pop('created_at')
+    resp_json.pop('updated_at')
+    assert resp_json == {
         'id': 1,
         'title': 'Test todo',
         'description': 'Test todo description',
